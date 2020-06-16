@@ -8,4 +8,8 @@ RUN apk --update add --no-cache unbound wget \
 
 COPY unbound.conf /etc/unbound/
 
+RUN mkdir /etc/unbound/unbound.d
+
+VOLUME /etc/unbound/unbound.d
+
 ENTRYPOINT ["unbound", "-d"]
