@@ -11,5 +11,5 @@ You can include your own config files with a Docker volume into `/etc/unbound/un
 ## Building
 
 ```
-make build
+docker build --no-cache=true --build-arg BUILD_DATE=$(date -u +'%Y-%m-%dT%H:%M:%SZ') -t ${USER}/unbound .
 ```

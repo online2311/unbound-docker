@@ -1,6 +1,14 @@
 FROM alpine:latest
 
+ARG BUILD_DATE
+
 LABEL maintainer Mijndert Stuij "mijndert@mijndertstuij.nl"
+LABEL org.label-schema.build-date=$BUILD_DATE
+LABEL org.label-schema.name="docker.pkg.github.com/mijndert/unbound-docker/unbound:latest"
+LABEL org.label-schema.description="Unbound on Alpine"
+LABEL org.label-schema.url="https://github.com/mijndert/unbound-docker"
+LABEL org.label-schema.vcs-url="https://github.com/mijndert/unbound-docker"
+LABEL org.label-schema.docker.cmd="docker run -d --name unbound -p 53:5053/udp -p 53:5053/tcp --restart=always docker.pkg.github.com/mijndert/unbound-docker/unbound:latest"
 
 RUN apk --update add --no-cache unbound drill wget \
     && rm -rf /var/cache/apk/* /src/* \
