@@ -1,9 +1,6 @@
 FROM alpine:latest
 
-ARG BUILD_DATE
-
 LABEL maintainer Mijndert Stuij "mijndert@mijndertstuij.nl"
-LABEL org.label-schema.build-date=$BUILD_DATE
 LABEL org.label-schema.name="docker.pkg.github.com/mijndert/unbound-docker/unbound:latest"
 LABEL org.label-schema.description="Unbound on Alpine"
 LABEL org.label-schema.url="https://github.com/mijndert/unbound-docker"
