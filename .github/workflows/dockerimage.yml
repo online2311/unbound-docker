@@ -41,10 +41,10 @@ jobs:
         docker buildx build \
           --platform linux/386,linux/amd64,linux/arm/v7,linux/arm64,linux/ppc64le,linux/s390x \
           --push \
-          --tag mijndert/znc .
+          --tag mijndert/unbound .
 
     - name: Publish to GitHub Package registry
       uses: VaultVulp/gp-docker-action@1.0.1
       with:
         github-token: ${{ secrets.GITHUB_TOKEN }}
-        image-name: znc
+        image-name: unbound
