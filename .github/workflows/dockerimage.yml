@@ -1,66 +1,50 @@
-name: Docker
+name: Docker Image CI
 
 on:
   push:
-    branches:
-      - master
-    tags:
-      - v*
+    branches: [ master ]
   pull_request:
-
-env:
-  IMAGE_NAME: unbound
+    branches: [ master ]
 
 jobs:
 
-  test:
+   build-and-publish-latest:
     runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v2
-
-      - name: Run tests
-        run: |
-          if [ -f docker-compose.test.yml ]; then
-            docker-compose --file docker-compose.test.yml build
-            docker-compose --file docker-compose.test.yml run sut
-          else
-            docker build . --file Dockerfile
-          fi
-
-  push:
-
-    needs: test
-
-    runs-on: ubuntu-latest
-    if: github.event_name == 'push'
+    if: github.ref == 'refs/heads/master'
 
     steps:
-      - uses: actions/checkout@v2
+    - uses: actions/checkout@v2
 
-      - name: Build image
-        run: docker build . --file Dockerfile --tag $IMAGE_NAME
+    -
+      name: Dockerhub login
+      env:
+        DOCKER_TOKEN: ${{ secrets.DOCKER_TOKEN }}
+        DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+      run: |
+        echo "${DOCKER_TOKEN}" | docker login --username ${DOCKER_USERNAME} --password-stdin
 
-      - name: Log into registry
-        run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login docker.pkg.github.com -u ${{ github.actor }} --password-stdin
+    -
+      name: Set up Docker Buildx
+      id: buildx
+      uses: crazy-max/ghaction-docker-buildx@v3
+      with:
+        buildx-version: latest
+        qemu-version: latest
 
-      - name: Push image
-        run: |
-          IMAGE_ID=docker.pkg.github.com/${{ github.repository }}/$IMAGE_NAME
-          
-          # Change all uppercase to lowercase
-          IMAGE_ID=$(echo $IMAGE_ID | tr '[A-Z]' '[a-z]')
+    -
+      name: Available platforms
+      run: echo ${{ steps.buildx.outputs.platforms }}
 
-          # Strip git ref prefix from version
-          VERSION=$(echo "${{ github.ref }}" | sed -e 's,.*/\(.*\),\1,')
+    -
+      name: Run Buildx
+      run: |
+        docker buildx build \
+          --platform linux/386,linux/amd64,linux/arm/v7,linux/arm64,linux/ppc64le,linux/s390x \
+          --push \
+          --tag mijndert/znc .
 
-          # Strip "v" prefix from tag name
-          [[ "${{ github.ref }}" == "refs/tags/"* ]] && VERSION=$(echo $VERSION | sed -e 's/^v//')
-
-          # Use Docker `latest` tag convention
-          [ "$VERSION" == "master" ] && VERSION=latest
-
-          echo IMAGE_ID=$IMAGE_ID
-          echo VERSION=$VERSION
-
-          docker tag $IMAGE_NAME $IMAGE_ID:$VERSION
-          docker push $IMAGE_ID:$VERSION
+    - name: Publish to GitHub Package registry
+      uses: VaultVulp/gp-docker-action@1.0.1
+      with:
+        github-token: ${{ secrets.GITHUB_TOKEN }}
+        image-name: znc
